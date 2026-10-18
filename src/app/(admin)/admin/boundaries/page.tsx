@@ -1,13 +1,15 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { getAllBoundaries } from '@/lib/supabase/supabase-queries';
+import { getAllBoundaries, getAllSubjects } from '@/lib/supabase/supabase-queries';
 import { formatSeries } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { AddBoundaryModal } from '@/components/admin/add-boundary-modal';
 
 export default async function AdminBoundariesPage() {
-  const boundaries = await getAllBoundaries();
+  const [boundaries, subjects] = await Promise.all([
+    getAllBoundaries(),
+    getAllSubjects(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -18,10 +20,7 @@ export default async function AdminBoundariesPage() {
             Review, audit, or register verified Pearson Edexcel examination series boundary tables.
           </p>
         </div>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Add Boundary Dataset
-        </Button>
+        <AddBoundaryModal subjects={subjects} />
       </div>
 
       <Card>

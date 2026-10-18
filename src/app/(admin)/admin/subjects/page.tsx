@@ -1,9 +1,8 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { getAllSubjects } from '@/lib/supabase/supabase-queries';
-import { Plus } from 'lucide-react';
+import { RegisterSubjectModal } from '@/components/admin/register-subject-modal';
 
 export default async function AdminSubjectsPage() {
   const subjects = await getAllSubjects();
@@ -17,10 +16,7 @@ export default async function AdminSubjectsPage() {
             Maintain syllabuses, tiers, paper allocations, and verified component weightings.
           </p>
         </div>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Register Subject
-        </Button>
+        <RegisterSubjectModal />
       </div>
 
       <Card>

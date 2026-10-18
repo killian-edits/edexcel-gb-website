@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { getAllSubjects, getAllBoundaries } from '@/lib/supabase/supabase-queries';
 import { formatSeries } from '@/lib/utils';
 import { Layers, BookOpen, Activity, ShieldCheck } from 'lucide-react';
+import { AddBoundaryModal } from '@/components/admin/add-boundary-modal';
+import { RegisterSubjectModal } from '@/components/admin/register-subject-modal';
 
 export default async function AdminDashboardPage() {
   const subjects = await getAllSubjects();
@@ -12,11 +14,17 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">System Administration</h1>
-        <p className="text-xs text-[#6B6B6B] mt-1">
-          Monitor published grade boundaries, audit trail verification, and subject configuration status.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">System Administration</h1>
+          <p className="text-xs text-[#6B6B6B] mt-1">
+            Monitor published grade boundaries, audit trail verification, and subject configuration status.
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <RegisterSubjectModal />
+          <AddBoundaryModal subjects={subjects} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
