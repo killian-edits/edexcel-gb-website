@@ -17,7 +17,9 @@ export default function PortalLayout({
           {children}
         </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={<footer className="h-40 border-t border-[#E5E5E5] bg-[#F5F5F0]" />}>
+        <Footer />
+      </Suspense>
     </div>
   );
 }

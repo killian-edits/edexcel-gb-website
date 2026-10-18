@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS public.subjects (
   tiers TEXT[],
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'unverified', 'verified', 'retired')),
   source_url TEXT,
-  source_notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
   UNIQUE(code, version)

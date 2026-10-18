@@ -8,19 +8,35 @@
 
 // ─── Enums & Constants ───────────────────────────────────────
 
-export const GRADE_ORDER = ['A*', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'U'] as const;
+export const GRADE_ORDER = [
+  "9",
+  "8",
+  "7",
+  "6",
+  "5",
+  "4",
+  "3",
+  "2",
+  "1",
+  "U",
+] as const;
 export type Grade = (typeof GRADE_ORDER)[number];
 
-export const SERIES_TYPES = ['june', 'january'] as const;
+export const SERIES_TYPES = ["june", "january"] as const;
 export type SeriesType = (typeof SERIES_TYPES)[number];
 
-export const TIERS = ['foundation', 'higher'] as const;
+export const TIERS = ["foundation", "higher"] as const;
 export type Tier = (typeof TIERS)[number];
 
-export const VERIFICATION_STATUSES = ['draft', 'unverified', 'verified', 'retired'] as const;
+export const VERIFICATION_STATUSES = [
+  "draft",
+  "unverified",
+  "verified",
+  "retired",
+] as const;
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
 
-export const USER_ROLES = ['customer', 'admin'] as const;
+export const USER_ROLES = ["customer", "admin"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 // ─── Subject & Specification ─────────────────────────────────
@@ -34,7 +50,7 @@ export interface Subject {
   tiers: Tier[] | null;
   status: VerificationStatus;
   sourceUrl: string | null;
-  sourceNotes: string | null;
+  sourceNotes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -102,7 +118,7 @@ export type CalculationResult =
   | CalculationMissingData;
 
 export interface CalculationSuccess {
-  status: 'success';
+  status: "success";
   grade: Grade;
   totalMark: number;
   maxTotalMark: number;
@@ -127,17 +143,17 @@ export interface ComponentBreakdownItem {
 }
 
 export interface CalculationInvalidInput {
-  status: 'invalid_input';
+  status: "invalid_input";
   errors: ValidationError[];
 }
 
 export interface CalculationUnsupported {
-  status: 'unsupported';
+  status: "unsupported";
   reason: string;
 }
 
 export interface CalculationMissingData {
-  status: 'missing_data';
+  status: "missing_data";
   reason: string;
   missingItems: string[];
 }
@@ -163,7 +179,7 @@ export type TargetPlannerResult =
   | CalculationMissingData;
 
 export interface TargetPlannerSuccess {
-  status: 'target_achievable';
+  status: "target_achievable";
   targetGrade: Grade;
   completedTotal: number;
   requiredRemaining: number;
@@ -173,7 +189,7 @@ export interface TargetPlannerSuccess {
 }
 
 export interface TargetPlannerImpossible {
-  status: 'target_impossible';
+  status: "target_impossible";
   targetGrade: Grade;
   reason: string;
   completedTotal: number;
@@ -182,7 +198,7 @@ export interface TargetPlannerImpossible {
 }
 
 export interface TargetPlannerAlreadyAchieved {
-  status: 'target_already_achieved';
+  status: "target_already_achieved";
   targetGrade: Grade;
   currentGrade: Grade;
   completedTotal: number;
@@ -220,7 +236,7 @@ export interface SavedCalculation {
   resultGrade: Grade | null;
   resultTotal: number | null;
   resultMaxTotal: number | null;
-  calculationType: 'prediction' | 'target_plan';
+  calculationType: "prediction" | "target_plan";
   calculationModelVersion: string;
   isMockResult: boolean;
   createdAt: string;
@@ -255,7 +271,13 @@ export interface Resource {
   subjectCode: string | null;
   url: string;
   attribution: string | null;
-  resourceType: 'checklist' | 'formula_sheet' | 'past_paper' | 'guide' | 'other';
+  resourceType:
+    | "checklist"
+    | "formula_sheet"
+    | "past_paper"
+    | "guide"
+    | "specification"
+    | "other";
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -274,4 +296,3 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
 }
-

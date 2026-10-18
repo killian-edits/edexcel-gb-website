@@ -30,7 +30,7 @@ import type {
 } from '@/types';
 
 // Re-export GRADE_ORDER for local usage
-const GRADES: readonly Grade[] = ['A*', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'U'];
+const GRADES: readonly Grade[] = ['9', '8', '7', '6', '5', '4', '3', '2', '1', 'U'];
 
 // ─── Validation ─────────────────────────────────────────────
 
@@ -406,7 +406,10 @@ export function calculateGrade(
     nextGrade,
     belowMinimumBoundary,
     componentBreakdown: aggregation.breakdown,
-    boundarySeriesLabel: boundary.series,
+    boundarySeriesLabel:
+      boundary.year && !boundary.series.includes(String(boundary.year))
+        ? `${boundary.series} ${boundary.year}`
+        : boundary.series,
     boundarySource: boundary.source,
     appliedRules: aggregation.appliedRules,
   };
@@ -569,8 +572,11 @@ export function calculateTarget(
   // Use ceiling to never falsely imply feasibility
   const requiredRemaining = Math.max(0, targetThreshold - completedTotal);
 
-  assumptions.push('Assumes simple sum aggregation (no weighting/scaling adjustments)');
-  assumptions.push(`Based on ${boundary.series} grade boundaries`);
+  const sessionLabel =
+    boundary.year && !boundary.series.includes(String(boundary.year))
+      ? `${boundary.series} ${boundary.year}`
+      : boundary.series;
+  assumptions.push(`Based on ${sessionLabel} grade boundaries`);
   assumptions.push('Historical boundaries do not guarantee future exam grades');
 
   // Distribute requirement info to each remaining component

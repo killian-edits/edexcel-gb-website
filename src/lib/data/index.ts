@@ -17,8 +17,13 @@ import {
   getBoundariesForSubject as getSupabaseBoundariesForSubject,
   getBoundary as getSupabaseBoundary,
   getAvailableSeries as getSupabaseAvailableSeries,
+  getResources as getSupabaseResources,
 } from '@/lib/supabase/supabase-queries';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+export async function getResources() {
+  return getSupabaseResources();
+}
 
 // ─── Subjects ───────────────────────────────────────────────
 

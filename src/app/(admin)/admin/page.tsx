@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAllSubjects, getAllBoundaries } from '@/lib/supabase/supabase-queries';
+import { formatSeries } from '@/lib/utils';
 import { Layers, BookOpen, Activity, ShieldCheck } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -91,7 +92,7 @@ export default async function AdminDashboardPage() {
                 {allBoundaries.slice(0, 6).map((b) => (
                   <tr key={b.id} className="hover:bg-[#FAFAFA]">
                     <td className="py-2.5 font-medium text-[#1A1A1A]">{b.subjectId.replace('subj-', '').toUpperCase()}</td>
-                    <td className="py-2.5 text-[#6B6B6B]">{b.series}</td>
+                    <td className="py-2.5 text-[#6B6B6B]">{formatSeries(b.series, b.year)}</td>
                     <td className="py-2.5 text-[#6B6B6B]">{b.tier ? `${b.tier} tier` : 'Untiered'}</td>
                     <td className="py-2.5 text-[#6B6B6B] font-mono">{b.maxMark} marks</td>
                     <td className="py-2.5">

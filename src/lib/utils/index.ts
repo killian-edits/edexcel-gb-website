@@ -13,14 +13,31 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
- * Format a series identifier for display.
- * e.g. "june-2024" → "June 2024"
+ * Format a series identifier for display with its year.
+ * e.g. ("june-2024") → "June 2024"
+ * e.g. ("June", 2025) → "June 2025"
+ * e.g. ("June 2025") → "June 2025"
  */
-export function formatSeries(series: string): string {
-  const parts = series.split('-');
-  if (parts.length !== 2) return series;
-  const [season, year] = parts;
-  return `${season.charAt(0).toUpperCase() + season.slice(1)} ${year}`;
+export function formatSeries(series: string, year?: number | null): string {
+  if (!series) return year ? String(year) : '';
+
+  const hyphenParts = series.split('-');
+  if (hyphenParts.length === 2 && /^\d{4}$/.test(hyphenParts[1])) {
+    const season = hyphenParts[0].charAt(0).toUpperCase() + hyphenParts[0].slice(1).toLowerCase();
+    return `${season} ${hyphenParts[1]}`;
+  }
+
+  const spaceParts = series.trim().split(/\s+/);
+  if (spaceParts.length >= 2 && /^\d{4}$/.test(spaceParts[spaceParts.length - 1])) {
+    const season = spaceParts[0].charAt(0).toUpperCase() + spaceParts[0].slice(1).toLowerCase();
+    return `${season} ${spaceParts.slice(1).join(' ')}`;
+  }
+
+  const capitalizedSeries = series.charAt(0).toUpperCase() + series.slice(1);
+  if (year) {
+    return `${capitalizedSeries} ${year}`;
+  }
+  return capitalizedSeries;
 }
 
 /**

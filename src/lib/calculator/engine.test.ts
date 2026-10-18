@@ -51,12 +51,13 @@ const sampleBoundary: GradeBoundary = {
   variant: null,
   componentCode: null,
   thresholds: {
-    'A*': 176,
-    A: 148,
-    B: 120,
-    C: 92,
-    D: 67,
-    E: 42,
+    '9': 176,
+    '8': 148,
+    '7': 120,
+    '6': 92,
+    '5': 67,
+    '4': 42,
+    '3': 25,
   },
   maxMark: 200,
   source: 'Verified Official Publication',
@@ -69,28 +70,28 @@ const sampleBoundary: GradeBoundary = {
 };
 
 describe('Grading Engine: determineGrade', () => {
-  it('correctly awards A* at and above threshold', () => {
+  it('correctly awards 9 at and above threshold', () => {
     const res = determineGrade(176, sampleBoundary.thresholds);
-    expect(res.grade).toBe('A*');
+    expect(res.grade).toBe('9');
     expect(res.nextGrade).toBeNull();
     expect(res.marksToNext).toBeNull();
 
     const resOver = determineGrade(190, sampleBoundary.thresholds);
-    expect(resOver.grade).toBe('A*');
+    expect(resOver.grade).toBe('9');
   });
 
-  it('correctly awards A immediately below A* threshold', () => {
+  it('correctly awards 8 immediately below 9 threshold', () => {
     const res = determineGrade(175, sampleBoundary.thresholds);
-    expect(res.grade).toBe('A');
-    expect(res.nextGrade).toBe('A*');
+    expect(res.grade).toBe('8');
+    expect(res.nextGrade).toBe('9');
     expect(res.marksToNext).toBe(1);
   });
 
   it('awards U when score falls below lowest grade', () => {
-    const res = determineGrade(40, sampleBoundary.thresholds);
+    const res = determineGrade(20, sampleBoundary.thresholds);
     expect(res.grade).toBe('U');
-    expect(res.nextGrade).toBe('E');
-    expect(res.marksToNext).toBe(2);
+    expect(res.nextGrade).toBe('3');
+    expect(res.marksToNext).toBe(5);
   });
 });
 
@@ -127,7 +128,7 @@ describe('Grading Engine: validateMarks', () => {
 });
 
 describe('Grading Engine: calculateGrade full flow', () => {
-  it('calculates deterministic A* outcome for valid full inputs', () => {
+  it('calculates deterministic 9 outcome for valid full inputs', () => {
     const result = calculateGrade(
       {
         subjectCode: '4MA1',
@@ -148,7 +149,7 @@ describe('Grading Engine: calculateGrade full flow', () => {
     expect(result.status).toBe('success');
     if (result.status === 'success') {
       expect(result.totalMark).toBe(178);
-      expect(result.grade).toBe('A*');
+      expect(result.grade).toBe('9');
       expect(result.marksToNextGrade).toBeNull();
     }
   });
@@ -188,7 +189,7 @@ describe('Grading Engine: Target Planner', () => {
         series: 'june-2024',
         tier: 'higher',
         variant: null,
-        targetGrade: 'A', // Requires 148 total
+        targetGrade: '8', // Requires 148 total
         completedMarks: [{ componentCode: '1H', rawMark: 75 }], // 148 - 75 = 73 required on 2H
       },
       {
@@ -211,7 +212,7 @@ describe('Grading Engine: Target Planner', () => {
         series: 'june-2024',
         tier: 'higher',
         variant: null,
-        targetGrade: 'A*', // Requires 176 total
+        targetGrade: '9', // Requires 176 total
         completedMarks: [{ componentCode: '1H', rawMark: 70 }], // Remaining max is 100 -> Max possible = 170 < 176
       },
       {

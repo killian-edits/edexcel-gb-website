@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 // ─── Common ─────────────────────────────────────────────────
 
-export const gradeSchema = z.enum(['A*', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'U']);
+export const gradeSchema = z.enum(['9', '8', '7', '6', '5', '4', '3', '2', '1', 'U']);
 
 export const tierSchema = z.enum(['foundation', 'higher']).nullable();
 

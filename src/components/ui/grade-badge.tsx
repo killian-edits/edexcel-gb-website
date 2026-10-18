@@ -10,20 +10,21 @@ export interface GradeBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export function GradeBadge({ grade, size = 'default', className, ...props }: GradeBadgeProps) {
   const getGradeStyles = (g: string) => {
     switch (g) {
-      case 'A*':
+      case '9':
         return 'bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]';
-      case 'A':
+      case '8':
         return 'bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]';
-      case 'B':
+      case '7':
         return 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]';
-      case 'C':
+      case '6':
         return 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]';
-      case 'D':
+      case '5':
         return 'bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]';
-      case 'E':
+      case '4':
         return 'bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]';
-      case 'F':
-      case 'G':
+      case '3':
+      case '2':
+      case '1':
         return 'bg-[#FEF2F2] text-[#991B1B] border-[#FCA5A5]';
       case 'U':
       default:

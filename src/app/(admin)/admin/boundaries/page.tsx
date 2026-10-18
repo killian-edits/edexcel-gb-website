@@ -44,7 +44,7 @@ export default async function AdminBoundariesPage() {
                   <th className="py-2.5 font-semibold">Subject Ref</th>
                   <th className="py-2.5 font-semibold">Series</th>
                   <th className="py-2.5 font-semibold">Tier</th>
-                  <th className="py-2.5 font-semibold">Threshold Samples (A* / A / C)</th>
+                  <th className="py-2.5 font-semibold">Threshold Samples (9 / 7 / 4)</th>
                   <th className="py-2.5 font-semibold">Max Marks</th>
                   <th className="py-2.5 font-semibold">Status</th>
                 </tr>
@@ -53,10 +53,10 @@ export default async function AdminBoundariesPage() {
                 {boundaries.map((b) => (
                   <tr key={b.id} className="hover:bg-[#FAFAFA]">
                     <td className="py-2.5 font-mono font-medium text-[#1A1A1A]">{b.subjectId}</td>
-                    <td className="py-2.5 font-medium">{formatSeries(b.series)}</td>
+                    <td className="py-2.5 font-medium">{formatSeries(b.series, b.year)}</td>
                     <td className="py-2.5 text-[#6B6B6B] capitalize">{b.tier || 'Untiered'}</td>
                     <td className="py-2.5 font-mono text-[#6B6B6B]">
-                      {b.thresholds['A*'] ?? '-'} / {b.thresholds['A'] ?? '-'} / {b.thresholds['C'] ?? '-'}
+                      {b.thresholds['9'] ?? '-'} / {b.thresholds['7'] ?? '-'} / {b.thresholds['4'] ?? '-'}
                     </td>
                     <td className="py-2.5 font-mono">{b.maxMark}</td>
                     <td className="py-2.5">

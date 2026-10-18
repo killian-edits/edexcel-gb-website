@@ -1,10 +1,11 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { siteConfig } from '@/lib/config/site';
+import { getAllSubjects } from '@/lib/supabase/supabase-queries';
 
-export function Footer() {
+export async function Footer() {
+  const subjects = await getAllSubjects();
+
   return (
     <footer className="mt-auto border-t border-[#E5E5E5] bg-[#F5F5F0]">
       <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-12 lg:px-16">
@@ -33,7 +34,7 @@ export function Footer() {
             <div>
               <h5 className="text-xs font-semibold uppercase tracking-wider text-[#1A1A1A]">Subjects</h5>
               <ul className="mt-3 space-y-2 text-sm text-[#6B6B6B]">
-                {siteConfig.featuredSubjects.slice(0, 4).map((s) => (
+                {subjects.slice(0, 6).map((s) => (
                   <li key={s.code}>
                     <Link href={`/subjects/${s.code}`} className="hover:text-[#0284C7]">
                       {s.title}

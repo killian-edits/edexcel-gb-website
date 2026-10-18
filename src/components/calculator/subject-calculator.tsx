@@ -39,19 +39,50 @@ export function SubjectCalculatorClient({
   // Modes: 'predict' | 'target' | 'trends'
   const [activeTab, setActiveTab] = useState<'predict' | 'target' | 'trends'>('predict');
 
+  const normalizeTier = (t?: string | null) => (t ? t.toLowerCase().trim() : null);
+
+  // Compute initial tier: pick the tier that actually has boundaries in the dataset
+  const getInitialTier = (): Tier | '' => {
+    if (!subject.tiers || subject.tiers.length === 0) return '';
+    const lowerTiers = subject.tiers.map((t) => t.toLowerCase() as Tier);
+    const tierWithBoundaries = lowerTiers.find((t) =>
+      boundaries.some((b) => normalizeTier(b.tier) === t)
+    );
+    return tierWithBoundaries || lowerTiers[0] || '';
+  };
+
   // Configuration State
-  const [selectedSeries, setSelectedSeries] = useState<string>(availableSeries[0] || '');
-  const [selectedTier, setSelectedTier] = useState<Tier | ''>(
-    subject.tiers && subject.tiers.length > 0 ? subject.tiers[0] : ''
+  const [selectedTier, setSelectedTier] = useState<Tier | ''>(getInitialTier());
+
+  // Filter boundaries by tier
+  const tierBoundaries = boundaries
+    .filter((b) => {
+      if (!selectedTier) return true;
+      return normalizeTier(b.tier) === normalizeTier(selectedTier);
+    })
+    .sort((a, b) => (b.year || 0) - (a.year || 0));
+
+  const displayBoundaries = tierBoundaries.length > 0 ? tierBoundaries : boundaries;
+
+  // Selected boundary ID for the exact session + year
+  const [selectedBoundaryId, setSelectedBoundaryId] = useState<string>(
+    displayBoundaries[0]?.id || ''
   );
+
+  // Active boundary for the chosen session & tier
+  const activeBoundary =
+    boundaries.find((b) => b.id === selectedBoundaryId) ||
+    displayBoundaries[0] ||
+    boundaries[0];
 
   // Filtered components based on tier
   const activeComponents = initialComponents.filter((comp) => {
     if (!selectedTier) return true;
-    if (selectedTier === 'higher') {
+    const norm = normalizeTier(selectedTier);
+    if (norm === 'higher') {
       return comp.componentCode.endsWith('H') || !comp.componentCode.match(/[HF]$/);
     }
-    if (selectedTier === 'foundation') {
+    if (norm === 'foundation') {
       return comp.componentCode.endsWith('F') || !comp.componentCode.match(/[HF]$/);
     }
     return true;
@@ -61,17 +92,21 @@ export function SubjectCalculatorClient({
   const [marks, setMarks] = useState<Record<string, string>>({});
 
   // Target Planner State
-  const [targetGrade, setTargetGrade] = useState<Grade>('A');
-
-  // Active boundary for the chosen series & tier
-  const activeBoundary = boundaries.find(
-    (b) =>
-      b.series === selectedSeries &&
-      (b.tier === (selectedTier || null))
-  );
+  const [targetGrade, setTargetGrade] = useState<Grade>('7');
 
   const handleMarkChange = (code: string, value: string) => {
     setMarks((prev) => ({ ...prev, [code]: value }));
+  };
+
+  const handleTierChange = (newTier: Tier | '') => {
+    setSelectedTier(newTier);
+    const filtered = boundaries.filter((b) => {
+      if (!newTier) return true;
+      return normalizeTier(b.tier) === normalizeTier(newTier);
+    });
+    if (filtered.length > 0 && !filtered.some((b) => b.id === selectedBoundaryId)) {
+      setSelectedBoundaryId(filtered[0].id);
+    }
   };
 
   // Perform Score Prediction
@@ -88,9 +123,9 @@ export function SubjectCalculatorClient({
     return calculateGrade(
       {
         subjectCode: subject.code,
-        series: selectedSeries,
-        tier: selectedTier || null,
-        variant: null,
+        series: activeBoundary.series,
+        tier: (activeBoundary.tier as Tier | null) ?? null,
+        variant: activeBoundary.variant,
         componentMarks: parsedMarks,
       },
       {
@@ -114,9 +149,9 @@ export function SubjectCalculatorClient({
     return calculateTarget(
       {
         subjectCode: subject.code,
-        series: selectedSeries,
-        tier: selectedTier || null,
-        variant: null,
+        series: activeBoundary.series,
+        tier: (activeBoundary.tier as Tier | null) ?? null,
+        variant: activeBoundary.variant,
         targetGrade,
         completedMarks,
       },
@@ -130,17 +165,18 @@ export function SubjectCalculatorClient({
   const predictionResult = runPrediction();
   const targetResult = runTargetPlan();
 
-  // Prepare chart data from boundaries
-  const chartData = boundaries
-    .filter((b) => b.tier === (selectedTier || null))
-    .sort((a, b) => a.year - b.year)
+  // Prepare chart data from boundaries sorted chronologically
+  const chartData = [...displayBoundaries]
+    .sort((a, b) => a.year - b.year || a.series.localeCompare(b.series))
     .map((b) => ({
-      name: formatSeries(b.series),
-      'A*': b.thresholds['A*'],
-      A: b.thresholds['A'],
-      B: b.thresholds['B'],
-      C: b.thresholds['C'],
-      D: b.thresholds['D'],
+      name: `${formatSeries(b.series, b.year)}${b.variant ? ` (${b.variant})` : ''}`,
+      '9': b.thresholds['9'],
+      '8': b.thresholds['8'],
+      '7': b.thresholds['7'],
+      '6': b.thresholds['6'],
+      '5': b.thresholds['5'],
+      '4': b.thresholds['4'],
+      '3': b.thresholds['3'],
       maxMark: b.maxMark,
     }));
 
@@ -152,12 +188,12 @@ export function SubjectCalculatorClient({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <Select
-                label="Exam Series"
-                value={selectedSeries}
-                onChange={(e) => setSelectedSeries(e.target.value)}
-                options={availableSeries.map((s) => ({
-                  value: s,
-                  label: formatSeries(s),
+                label="Exam Series & Year"
+                value={activeBoundary ? activeBoundary.id : selectedBoundaryId}
+                onChange={(e) => setSelectedBoundaryId(e.target.value)}
+                options={displayBoundaries.map((b) => ({
+                  value: b.id,
+                  label: `${formatSeries(b.series, b.year)}${b.variant ? ` (Variant ${b.variant})` : ''}`,
                 }))}
               />
             </div>
@@ -167,18 +203,25 @@ export function SubjectCalculatorClient({
                 <Select
                   label="Tier"
                   value={selectedTier}
-                  onChange={(e) => setSelectedTier(e.target.value as Tier)}
-                  options={subject.tiers.map((t) => ({
-                    value: t,
-                    label: t.charAt(0).toUpperCase() + t.slice(1) + ' Tier',
-                  }))}
+                  onChange={(e) => handleTierChange(e.target.value as Tier)}
+                  options={subject.tiers.map((t) => {
+                    const norm = t.toLowerCase() as Tier;
+                    return {
+                      value: norm,
+                      label: norm.charAt(0).toUpperCase() + norm.slice(1) + ' Tier',
+                    };
+                  })}
                 />
               </div>
             )}
 
             <div className="flex flex-col justify-end">
               <div className="text-xs text-[#6B6B6B] space-y-1">
-                <p className="font-semibold text-[#1A1A1A]">Boundary Scale: {activeBoundary?.maxMark ?? 'N/A'} marks</p>
+                <p className="font-semibold text-[#1A1A1A]">
+                  Session: {activeBoundary ? formatSeries(activeBoundary.series, activeBoundary.year) : 'N/A'}{' '}
+                  {activeBoundary?.tier ? `(${activeBoundary.tier.charAt(0).toUpperCase() + activeBoundary.tier.slice(1)} Tier)` : ''}
+                </p>
+                <p className="text-[#6B6B6B]">Scale: {activeBoundary?.maxMark ?? 'N/A'} marks</p>
                 <p>Status: <span className="text-[#16A34A] font-medium">Verified Official Archive</span></p>
               </div>
             </div>
@@ -272,7 +315,7 @@ export function SubjectCalculatorClient({
               <CardHeader className="bg-[#F0F9FF] border-b border-[#BAE6FD]">
                 <CardTitle className="text-base text-[#0369A1]">Estimated Outcome</CardTitle>
                 <CardDescription className="text-xs text-[#0284C7]">
-                  Applied to {formatSeries(selectedSeries)} standards
+                  Applied to {activeBoundary ? formatSeries(activeBoundary.series, activeBoundary.year) : 'selected session'} standards
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
@@ -349,7 +392,7 @@ export function SubjectCalculatorClient({
                     label="Desired Target Grade"
                     value={targetGrade}
                     onChange={(e) => setTargetGrade(e.target.value as Grade)}
-                    options={['A*', 'A', 'B', 'C', 'D', 'E', 'F', 'G'].map((g) => ({
+                    options={['9', '8', '7', '6', '5', '4', '3', '2', '1'].map((g) => ({
                       value: g,
                       label: `Grade ${g}`,
                     }))}
@@ -391,7 +434,7 @@ export function SubjectCalculatorClient({
               <CardHeader className="bg-[#F0FDF4] border-b border-[#BBF7D0]">
                 <CardTitle className="text-base text-[#15803D]">Target Feasibility</CardTitle>
                 <CardDescription className="text-xs text-[#16A34A]">
-                  Required remaining marks for Grade {targetGrade}
+                  Required remaining marks for Grade {targetGrade} ({activeBoundary ? formatSeries(activeBoundary.series, activeBoundary.year) : ''})
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
@@ -462,11 +505,13 @@ export function SubjectCalculatorClient({
                     }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="A*" stroke="#16A34A" strokeWidth={2} />
-                  <Line type="monotone" dataKey="A" stroke="#0284C7" strokeWidth={2} />
-                  <Line type="monotone" dataKey="B" stroke="#84CC16" strokeWidth={2} />
-                  <Line type="monotone" dataKey="C" stroke="#EAB308" strokeWidth={2} />
-                  <Line type="monotone" dataKey="D" stroke="#EA580C" strokeWidth={2} />
+                  <Line type="monotone" dataKey="9" stroke="#16A34A" strokeWidth={2} />
+                  <Line type="monotone" dataKey="8" stroke="#059669" strokeWidth={2} />
+                  <Line type="monotone" dataKey="7" stroke="#0284C7" strokeWidth={2} />
+                  <Line type="monotone" dataKey="6" stroke="#84CC16" strokeWidth={2} />
+                  <Line type="monotone" dataKey="5" stroke="#EAB308" strokeWidth={2} />
+                  <Line type="monotone" dataKey="4" stroke="#EA580C" strokeWidth={2} />
+                  <Line type="monotone" dataKey="3" stroke="#DC2626" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -475,29 +520,38 @@ export function SubjectCalculatorClient({
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-[#E5E5E5] text-[#6B6B6B]">
-                    <th className="py-2 font-semibold">Series</th>
+                    <th className="py-2 font-semibold">Series / Session</th>
+                    <th className="py-2 font-semibold">Year</th>
+                    <th className="py-2 font-semibold">Tier</th>
                     <th className="py-2 font-semibold">Max Mark</th>
-                    <th className="py-2 font-semibold">A*</th>
-                    <th className="py-2 font-semibold">A</th>
-                    <th className="py-2 font-semibold">B</th>
-                    <th className="py-2 font-semibold">C</th>
-                    <th className="py-2 font-semibold">D</th>
+                    <th className="py-2 font-semibold">9</th>
+                    <th className="py-2 font-semibold">8</th>
+                    <th className="py-2 font-semibold">7</th>
+                    <th className="py-2 font-semibold">6</th>
+                    <th className="py-2 font-semibold">5</th>
+                    <th className="py-2 font-semibold">4</th>
+                    <th className="py-2 font-semibold">3</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F5F5F0]">
-                  {boundaries
-                    .filter((b) => b.tier === (selectedTier || null))
-                    .map((b) => (
-                      <tr key={b.id} className="hover:bg-[#FAFAFA]">
-                        <td className="py-2.5 font-medium text-[#1A1A1A]">{formatSeries(b.series)}</td>
-                        <td className="py-2.5 text-[#6B6B6B]">{b.maxMark}</td>
-                        <td className="py-2.5 font-mono font-semibold text-[#16A34A]">{b.thresholds['A*'] ?? '-'}</td>
-                        <td className="py-2.5 font-mono font-semibold text-[#0284C7]">{b.thresholds['A'] ?? '-'}</td>
-                        <td className="py-2.5 font-mono font-semibold text-[#84CC16]">{b.thresholds['B'] ?? '-'}</td>
-                        <td className="py-2.5 font-mono font-semibold text-[#EAB308]">{b.thresholds['C'] ?? '-'}</td>
-                        <td className="py-2.5 font-mono font-semibold text-[#EA580C]">{b.thresholds['D'] ?? '-'}</td>
-                      </tr>
-                    ))}
+                  {displayBoundaries.map((b) => (
+                    <tr key={b.id} className="hover:bg-[#FAFAFA]">
+                      <td className="py-2.5 font-medium text-[#1A1A1A]">
+                        {formatSeries(b.series, b.year)}
+                        {b.variant ? ` (Variant ${b.variant})` : ''}
+                      </td>
+                      <td className="py-2.5 font-mono text-[#6B6B6B]">{b.year}</td>
+                      <td className="py-2.5 text-[#6B6B6B] capitalize">{b.tier || 'Untiered'}</td>
+                      <td className="py-2.5 text-[#6B6B6B]">{b.maxMark}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#16A34A]">{b.thresholds['9'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#059669]">{b.thresholds['8'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#0284C7]">{b.thresholds['7'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#84CC16]">{b.thresholds['6'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#EAB308]">{b.thresholds['5'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#EA580C]">{b.thresholds['4'] ?? '-'}</td>
+                      <td className="py-2.5 font-mono font-semibold text-[#DC2626]">{b.thresholds['3'] ?? '-'}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
