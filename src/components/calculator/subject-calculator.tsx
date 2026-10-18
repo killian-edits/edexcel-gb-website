@@ -41,6 +41,40 @@ export function SubjectCalculatorClient({
 
   const normalizeTier = (t?: string | null) => (t ? t.toLowerCase().trim() : null);
 
+  const getSeriesMonthWeight = (series: string): number => {
+    const s = (series || '').toLowerCase();
+    if (s.includes('nov')) return 11;
+    if (s.includes('jun')) return 6;
+    if (s.includes('jan')) return 1;
+    return 0;
+  };
+
+  // Sort comparator: latest year first, then latest season (Nov > Jun > Jan), then R variant before standard
+  const compareBoundariesDescending = (a: GradeBoundary, b: GradeBoundary): number => {
+    if (b.year !== a.year) {
+      return b.year - a.year;
+    }
+    const monthA = getSeriesMonthWeight(a.series);
+    const monthB = getSeriesMonthWeight(b.series);
+    if (monthB !== monthA) {
+      return monthB - monthA;
+    }
+    const hasVariantA = a.variant ? 1 : 0;
+    const hasVariantB = b.variant ? 1 : 0;
+    if (hasVariantB !== hasVariantA) {
+      return hasVariantB - hasVariantA;
+    }
+    if (a.variant && b.variant) {
+      return b.variant.localeCompare(a.variant);
+    }
+    return 0;
+  };
+
+  const formatSessionName = (b: GradeBoundary): string => {
+    const base = formatSeries(b.series, b.year);
+    return b.variant ? `${base} ${b.variant}` : base;
+  };
+
   // Compute initial tier: pick the tier that actually has boundaries in the dataset
   const getInitialTier = (): Tier | '' => {
     if (!subject.tiers || subject.tiers.length === 0) return '';
@@ -54,15 +88,16 @@ export function SubjectCalculatorClient({
   // Configuration State
   const [selectedTier, setSelectedTier] = useState<Tier | ''>(getInitialTier());
 
-  // Filter boundaries by tier
+  // Filter boundaries by tier and sort latest first
   const tierBoundaries = boundaries
     .filter((b) => {
       if (!selectedTier) return true;
       return normalizeTier(b.tier) === normalizeTier(selectedTier);
     })
-    .sort((a, b) => (b.year || 0) - (a.year || 0));
+    .sort(compareBoundariesDescending);
 
-  const displayBoundaries = tierBoundaries.length > 0 ? tierBoundaries : boundaries;
+  const displayBoundaries = (tierBoundaries.length > 0 ? tierBoundaries : [...boundaries])
+    .sort(compareBoundariesDescending);
 
   // Selected boundary ID for the exact session + year
   const [selectedBoundaryId, setSelectedBoundaryId] = useState<string>(
@@ -165,11 +200,11 @@ export function SubjectCalculatorClient({
   const predictionResult = runPrediction();
   const targetResult = runTargetPlan();
 
-  // Prepare chart data from boundaries sorted chronologically
+  // Prepare chart data from boundaries sorted latest first
   const chartData = [...displayBoundaries]
-    .sort((a, b) => a.year - b.year || a.series.localeCompare(b.series))
+    .sort(compareBoundariesDescending)
     .map((b) => ({
-      name: `${formatSeries(b.series, b.year)}${b.variant ? ` (${b.variant})` : ''}`,
+      name: formatSessionName(b),
       '9': b.thresholds['9'],
       '8': b.thresholds['8'],
       '7': b.thresholds['7'],
@@ -193,7 +228,7 @@ export function SubjectCalculatorClient({
                 onChange={(e) => setSelectedBoundaryId(e.target.value)}
                 options={displayBoundaries.map((b) => ({
                   value: b.id,
-                  label: `${formatSeries(b.series, b.year)}${b.variant ? ` (Variant ${b.variant})` : ''}`,
+                  label: formatSessionName(b),
                 }))}
               />
             </div>
@@ -537,8 +572,7 @@ export function SubjectCalculatorClient({
                   {displayBoundaries.map((b) => (
                     <tr key={b.id} className="hover:bg-[#FAFAFA]">
                       <td className="py-2.5 font-medium text-[#1A1A1A]">
-                        {formatSeries(b.series, b.year)}
-                        {b.variant ? ` (Variant ${b.variant})` : ''}
+                        {formatSessionName(b)}
                       </td>
                       <td className="py-2.5 font-mono text-[#6B6B6B]">{b.year}</td>
                       <td className="py-2.5 text-[#6B6B6B] capitalize">{b.tier || 'Untiered'}</td>

@@ -38,7 +38,7 @@ export default function SignUpPage() {
       return;
     }
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -50,6 +50,8 @@ export default function SignUpPage() {
 
     if (signUpError) {
       setError(signUpError.message);
+    } else if (signUpData.session) {
+      window.location.href = '/dashboard';
     } else {
       setSuccess(true);
     }

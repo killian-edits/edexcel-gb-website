@@ -9,6 +9,7 @@ import {
   BookOpen,
   Users,
   ArrowLeft,
+  User,
 } from 'lucide-react';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
@@ -100,7 +101,14 @@ export default async function AdminLayout({
           </nav>
         </div>
 
-        <div className="p-4 border-t border-[#E5E5E5]">
+        <div className="p-4 border-t border-[#E5E5E5] space-y-1">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
+          >
+            <User className="h-4 w-4" />
+            <span>My Profile</span>
+          </Link>
           <Link
             href="/"
             className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
