@@ -1,4 +1,4 @@
--- BoundaryPulse: Database Schema & Row Level Security Policies
+-- Edexify: Database Schema & Row Level Security Policies
 -- Designed for PostgreSQL & Supabase
 
 -- 1. Profiles Table

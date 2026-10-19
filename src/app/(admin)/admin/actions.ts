@@ -1,7 +1,10 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server';
+import { revalidatePath } from "next/cache";
+import {
+  createServerSupabaseClient,
+  createAdminSupabaseClient,
+} from "@/lib/supabase/server";
 
 export interface RegisterSubjectInput {
   code: string;
@@ -9,7 +12,7 @@ export interface RegisterSubjectInput {
   qualification: string;
   version: string;
   tiers: string[] | null;
-  status: 'verified' | 'unverified' | 'draft' | 'retired';
+  status: "verified" | "unverified" | "draft" | "retired";
   sourceUrl?: string | null;
   sourceNotes?: string | null;
   components?: Array<{
@@ -32,7 +35,7 @@ export interface AddBoundaryInput {
   thresholds: Record<string, number>;
   source: string;
   publicationDate?: string | null;
-  verificationStatus: 'verified' | 'unverified' | 'draft' | 'retired';
+  verificationStatus: "verified" | "unverified" | "draft" | "retired";
 }
 
 /**
@@ -41,22 +44,25 @@ export interface AddBoundaryInput {
 async function verifyAdmin() {
   const userClient = await createServerSupabaseClient();
   if (!userClient) {
-    throw new Error('Supabase client unavailable');
+    throw new Error("Supabase client unavailable");
   }
 
-  const { data: { user }, error: authError } = await userClient.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await userClient.auth.getUser();
   if (authError || !user) {
-    throw new Error('Authentication required');
+    throw new Error("Authentication required");
   }
 
   const { data: profile } = await userClient
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
     .single();
 
-  if (profile?.role !== 'admin') {
-    throw new Error('Unauthorized: Admin privilege required');
+  if (profile?.role !== "admin") {
+    throw new Error("Unauthorized: Admin privilege required");
   }
 
   return user;
@@ -68,27 +74,27 @@ export async function registerSubjectAction(input: RegisterSubjectInput) {
 
     const adminClient = await createAdminSupabaseClient();
     if (!adminClient) {
-      throw new Error('Admin database client unavailable');
+      throw new Error("Admin database client unavailable");
     }
 
     const normalizedCode = input.code.trim().toUpperCase();
     const normalizedTitle = input.title.trim();
-    const normalizedTiers = input.tiers && input.tiers.length > 0
-      ? input.tiers.map((t) => t.toLowerCase())
-      : null;
+    const normalizedTiers =
+      input.tiers && input.tiers.length > 0
+        ? input.tiers.map((t) => t.toLowerCase())
+        : null;
 
     // Insert subject
     const { data: subject, error: subjectError } = await adminClient
-      .from('subjects')
+      .from("subjects")
       .insert({
         code: normalizedCode,
         title: normalizedTitle,
-        qualification: input.qualification.trim() || 'International GCSE',
-        version: input.version.trim() || '2017',
+        qualification: input.qualification.trim() || "International GCSE",
+        version: input.version.trim() || "2017",
         tiers: normalizedTiers,
-        status: input.status || 'verified',
+        status: input.status || "verified",
         source_url: input.sourceUrl?.trim() || null,
-        source_notes: input.sourceNotes?.trim() || null,
       })
       .select()
       .single();
@@ -105,29 +111,36 @@ export async function registerSubjectAction(input: RegisterSubjectInput) {
         component_name: c.componentName.trim(),
         max_raw_marks: Number(c.maxRawMarks),
         duration: c.duration?.trim() || null,
-        weighting_percent: c.weightingPercent !== undefined && c.weightingPercent !== null
-          ? Number(c.weightingPercent)
-          : null,
+        weighting_percent:
+          c.weightingPercent !== undefined && c.weightingPercent !== null
+            ? Number(c.weightingPercent)
+            : null,
         scaling_factor: null,
         sort_order: idx + 1,
-        status: 'verified',
+        status: "verified",
       }));
 
       const { error: compsError } = await adminClient
-        .from('subject_components')
+        .from("subject_components")
         .insert(componentsToInsert);
 
       if (compsError) {
-        console.warn('Could not insert components during subject registration:', compsError);
+        console.warn(
+          "Could not insert components during subject registration:",
+          compsError,
+        );
       }
     }
 
-    revalidatePath('/admin/subjects');
-    revalidatePath('/admin');
-    revalidatePath('/');
+    revalidatePath("/admin/subjects");
+    revalidatePath("/admin");
+    revalidatePath("/");
     return { success: true, data: subject };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to register subject' };
+    return {
+      success: false,
+      error: err.message || "Failed to register subject",
+    };
   }
 }
 
@@ -137,7 +150,7 @@ export async function addBoundaryDatasetAction(input: AddBoundaryInput) {
 
     const adminClient = await createAdminSupabaseClient();
     if (!adminClient) {
-      throw new Error('Admin database client unavailable');
+      throw new Error("Admin database client unavailable");
     }
 
     const seriesName = input.series.trim();
@@ -147,17 +160,17 @@ export async function addBoundaryDatasetAction(input: AddBoundaryInput) {
     // Filter thresholds for 9-1 and U numeric keys
     const cleanThresholds: Record<string, number> = {};
     for (const [key, val] of Object.entries(input.thresholds)) {
-      if (typeof val === 'number' && !isNaN(val)) {
+      if (typeof val === "number" && !isNaN(val)) {
         cleanThresholds[key] = val;
       }
     }
 
-    if (!cleanThresholds['U']) {
-      cleanThresholds['U'] = 0;
+    if (!cleanThresholds["U"]) {
+      cleanThresholds["U"] = 0;
     }
 
     const { data: boundary, error: boundaryError } = await adminClient
-      .from('grade_boundaries')
+      .from("grade_boundaries")
       .insert({
         subject_id: input.subjectId,
         series: seriesName.charAt(0).toUpperCase() + seriesName.slice(1),
@@ -168,9 +181,9 @@ export async function addBoundaryDatasetAction(input: AddBoundaryInput) {
         component_code: input.componentCode ? input.componentCode.trim() : null,
         max_mark: Number(input.maxMark),
         thresholds: cleanThresholds,
-        source: input.source.trim() || 'Verified Pearson Edexcel Publication',
+        source: input.source.trim() || "Verified Pearson Edexcel Publication",
         publication_date: input.publicationDate || null,
-        verification_status: input.verificationStatus || 'verified',
+        verification_status: input.verificationStatus || "verified",
         data_version: 1,
       })
       .select()
@@ -180,13 +193,15 @@ export async function addBoundaryDatasetAction(input: AddBoundaryInput) {
       return { success: false, error: boundaryError.message };
     }
 
-    revalidatePath('/admin/boundaries');
-    revalidatePath('/admin');
-    revalidatePath('/');
+    revalidatePath("/admin/boundaries");
+    revalidatePath("/admin");
+    revalidatePath("/");
     revalidatePath(`/subjects/${input.subjectId}`);
     return { success: true, data: boundary };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to add grade boundary dataset' };
+    return {
+      success: false,
+      error: err.message || "Failed to add grade boundary dataset",
+    };
   }
 }
-

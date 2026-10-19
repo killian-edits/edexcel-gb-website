@@ -141,53 +141,50 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {subjects.map((subject) => (
-            <Card
+            <Link
+              href={`/calculator?subject=${subject.code}`}
+              className="block"
               key={subject.id}
-              className="flex flex-col hover:border-[#0284C7] transition-colors"
             >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold px-2 py-1 bg-[#F5F5F0] rounded text-[#1A1A1A]">
-                    {subject.code}
-                  </span>
-                  <Badge variant="success" className="text-[10px]">
-                    Verified Spec
-                  </Badge>
-                </div>
-                <CardTitle className="mt-2 text-lg">{subject.title}</CardTitle>
-                <CardDescription>
-                  {subject.qualification} ({subject.version})
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 space-y-3">
-                <div className="text-xs text-[#6B6B6B]">
-                  {subject.tiers ? (
-                    <span className="inline-block bg-[#F5F5F0] px-2 py-0.5 rounded text-[11px] font-medium text-[#1A1A1A]">
-                      Tiers: {subject.tiers.join(", ")}
+              <Card
+                key={subject.id}
+                className="flex flex-col hover:border-[#0284C7] hover:bg-[#F5F5F0] transition-colors shadow-sm hover:shadow-md cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold px-2 py-1 bg-[#F5F5F0] rounded text-[#1A1A1A]">
+                      {subject.code}
                     </span>
-                  ) : (
-                    <span className="inline-block bg-[#F5F5F0] px-2 py-0.5 rounded text-[11px] font-medium text-[#1A1A1A]">
-                      Untiered specification
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-[#6B6B6B] line-clamp-2">
-                  Component marks, paper weightings, and published series
-                  thresholds.
-                </p>
-              </CardContent>
-              <CardFooter className="pt-4">
-                <Link href={`/calculator?subject=${subject.code}`} className="w-full">
-                  <Button
-                    variant="secondary"
-                    className="w-full justify-between"
-                  >
-                    <span>Open Calculator</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
+                    <Badge variant="success" className="text-[10px]">
+                      Verified Spec
+                    </Badge>
+                  </div>
+                  <CardTitle className="mt-2 text-lg">
+                    {subject.title}
+                  </CardTitle>
+                  <CardDescription>
+                    {subject.qualification} ({subject.version})
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-3">
+                  <div className="text-xs text-[#6B6B6B]">
+                    {subject.tiers ? (
+                      <span className="inline-block bg-[#F5F5F0] px-2 py-0.5 rounded text-[11px] font-medium text-[#1A1A1A]">
+                        Tiers: {subject.tiers.join(", ")}
+                      </span>
+                    ) : (
+                      <span className="inline-block bg-[#F5F5F0] px-2 py-0.5 rounded text-[11px] font-medium text-[#1A1A1A]">
+                        Untiered specification
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#6B6B6B] line-clamp-2">
+                    Component marks, paper weightings, and published series
+                    thresholds.
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>

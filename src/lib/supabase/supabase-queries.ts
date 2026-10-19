@@ -27,7 +27,6 @@ interface SubjectRow {
   tiers: string[] | null;
   status: string;
   source_url: string | null;
-  source_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -90,7 +89,6 @@ function mapSubjectRow(row: SubjectRow): Subject {
     tiers: row.tiers ? row.tiers.map((t) => t.toLowerCase() as Tier) : null,
     status: (row.status as VerificationStatus) ?? "verified",
     sourceUrl: row.source_url,
-    sourceNotes: row.source_notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -318,7 +316,7 @@ export async function getAvailableSeries(
   const seriesWithYears = sorted.map((b) =>
     b.year && !b.series.includes(String(b.year))
       ? `${b.series} ${b.year}`
-      : b.series
+      : b.series,
   );
   return [...new Set(seriesWithYears)];
 }

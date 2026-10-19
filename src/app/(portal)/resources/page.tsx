@@ -1,8 +1,14 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ExternalLink, ShieldAlert, BookOpen } from 'lucide-react';
-import { getResources } from '@/lib/supabase/supabase-queries';
+import React from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink, ShieldAlert, BookOpen } from "lucide-react";
+import { getResources } from "@/lib/supabase/supabase-queries";
 
 export default async function ResourcesPage() {
   const resources = await getResources();
@@ -11,10 +17,13 @@ export default async function ResourcesPage() {
     <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-12 lg:px-16 space-y-10">
       <div className="max-w-2xl space-y-3">
         <h1 className="text-3xl font-extrabold tracking-tight text-[#1A1A1A]">
-          Authoritative Revision Resources
+          Revision Resources
         </h1>
         <p className="text-sm text-[#6B6B6B] leading-relaxed">
-          Direct references to official Pearson specifications, syllabus checklists, and verified past-paper guidance queried directly from our verified database. We never host unauthorized materials or link to unverified mirrors.
+          Direct references to official Pearson specifications, syllabus
+          checklists, and verified past-paper guidance queried directly from our
+          verified database. We never host unauthorized materials or link to
+          unverified mirrors.
         </p>
       </div>
 
@@ -23,7 +32,10 @@ export default async function ResourcesPage() {
         <div className="text-xs text-[#0369A1] space-y-1">
           <p className="font-semibold">Licensing & Copyright Attribution</p>
           <p>
-            All syllabus specifications, examination codes, and assessment frameworks are property of Pearson Education Ltd. BoundaryPulse links directly to public publisher domains for legitimate student preparation.
+            All syllabus specifications, examination codes, and assessment
+            frameworks are property of Pearson Education Ltd. Edexify links
+            directly to public publisher domains for legitimate student
+            preparation.
           </p>
         </div>
       </div>
@@ -31,9 +43,12 @@ export default async function ResourcesPage() {
       {resources.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[#E5E5E5] bg-white p-12 text-center space-y-3">
           <BookOpen className="mx-auto h-8 w-8 text-[#6B6B6B]" />
-          <h3 className="text-base font-semibold text-[#1A1A1A]">No resources found</h3>
+          <h3 className="text-base font-semibold text-[#1A1A1A]">
+            No resources found
+          </h3>
           <p className="text-xs text-[#6B6B6B] max-w-sm mx-auto">
-            Resources are populated from the active subjects and specifications configured in your Supabase database.
+            Resources are populated from the active subjects and specifications
+            configured in your Supabase database.
           </p>
         </div>
       ) : (
@@ -65,7 +80,7 @@ export default async function ResourcesPage() {
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0284C7] hover:underline"
                 >
-                  <span>Access Authoritative Spec</span>
+                  <span>Access Specification</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </CardContent>

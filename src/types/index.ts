@@ -1,5 +1,5 @@
 /**
- * Core domain types for BoundaryPulse.
+ * Core domain types for Edexify.
  *
  * These types model the Edexcel IGCSE grading domain:
  * subjects, specifications, components, grade boundaries,

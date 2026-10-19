@@ -1,4 +1,4 @@
--- BoundaryPulse: Development Seed Data
+-- Edexify: Development Seed Data
 -- ⚠️ SAMPLE DATA ONLY: All boundary entries are illustrative and explicitly labeled as sample datasets.
 -- Never use in production without verifying against Pearson Edexcel official publications.
 
