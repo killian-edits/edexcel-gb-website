@@ -129,6 +129,24 @@ export function SubjectCalculatorClient({
   // Target Planner State
   const [targetGrade, setTargetGrade] = useState<Grade>('7');
 
+  // Grade visibility toggles for the trends chart
+  const ALL_CHART_GRADES = ['9', '8', '7', '6', '5', '4', '3'] as const;
+  const [visibleGrades, setVisibleGrades] = useState<Set<string>>(
+    new Set(ALL_CHART_GRADES)
+  );
+
+  const toggleGradeVisibility = (grade: string) => {
+    setVisibleGrades((prev) => {
+      const next = new Set(prev);
+      if (next.has(grade)) {
+        if (next.size > 1) next.delete(grade);
+      } else {
+        next.add(grade);
+      }
+      return next;
+    });
+  };
+
   const handleMarkChange = (code: string, value: string) => {
     setMarks((prev) => ({ ...prev, [code]: value }));
   };
@@ -200,9 +218,20 @@ export function SubjectCalculatorClient({
   const predictionResult = runPrediction();
   const targetResult = runTargetPlan();
 
-  // Prepare chart data from boundaries sorted latest first
+  // Grade color map for chart lines and toggle buttons
+  const gradeColors: Record<string, string> = {
+    '9': '#16A34A',
+    '8': '#059669',
+    '7': '#0284C7',
+    '6': '#84CC16',
+    '5': '#EAB308',
+    '4': '#EA580C',
+    '3': '#DC2626',
+  };
+
+  // Prepare chart data — sorted ascending (oldest → latest) so latest appears on the right
   const chartData = [...displayBoundaries]
-    .sort(compareBoundariesDescending)
+    .sort((a, b) => compareBoundariesDescending(b, a))
     .map((b) => ({
       name: formatSessionName(b),
       '9': b.thresholds['9'],
@@ -525,7 +554,37 @@ export function SubjectCalculatorClient({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="h-80 w-full pt-4">
+            {/* Grade filter toggle buttons */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-xs font-semibold text-[#6B6B6B] mr-1">Show grades:</span>
+              {ALL_CHART_GRADES.map((g) => {
+                const isActive = visibleGrades.has(g);
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => toggleGradeVisibility(g)}
+                    className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-bold transition-all cursor-pointer border ${
+                      isActive
+                        ? 'text-white border-transparent shadow-sm'
+                        : 'bg-white text-[#6B6B6B] border-[#E5E5E5] hover:border-[#B0B0B0]'
+                    }`}
+                    style={isActive ? { backgroundColor: gradeColors[g] } : undefined}
+                  >
+                    Grade {g}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setVisibleGrades(new Set(ALL_CHART_GRADES))}
+                className="text-[10px] font-semibold text-[#0284C7] hover:underline ml-2 cursor-pointer"
+              >
+                Show all
+              </button>
+            </div>
+
+            <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
@@ -540,13 +599,17 @@ export function SubjectCalculatorClient({
                     }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="9" stroke="#16A34A" strokeWidth={2} />
-                  <Line type="monotone" dataKey="8" stroke="#059669" strokeWidth={2} />
-                  <Line type="monotone" dataKey="7" stroke="#0284C7" strokeWidth={2} />
-                  <Line type="monotone" dataKey="6" stroke="#84CC16" strokeWidth={2} />
-                  <Line type="monotone" dataKey="5" stroke="#EAB308" strokeWidth={2} />
-                  <Line type="monotone" dataKey="4" stroke="#EA580C" strokeWidth={2} />
-                  <Line type="monotone" dataKey="3" stroke="#DC2626" strokeWidth={2} />
+                  {ALL_CHART_GRADES.filter((g) => visibleGrades.has(g)).map((g) => (
+                    <Line
+                      key={g}
+                      type="monotone"
+                      dataKey={g}
+                      stroke={gradeColors[g]}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  ))}
                 </LineChart>
               </ResponsiveContainer>
             </div>

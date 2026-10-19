@@ -21,6 +21,7 @@ export const siteConfig = {
   /** Navigation links */
   nav: [
     { label: "Home", href: "/" },
+    { label: "Calculator", href: "/calculator" },
     { label: "Dashboard", href: "/dashboard", auth: true },
     { label: "Resources", href: "/resources" },
   ] as const,

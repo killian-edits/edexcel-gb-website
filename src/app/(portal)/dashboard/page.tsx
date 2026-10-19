@@ -69,7 +69,7 @@ export default function DashboardPage() {
             </Link>
           )}
 
-          <Link href="/#subjects">
+          <Link href="/calculator">
             <Button size="sm">
               <Plus className="h-4 w-4 mr-1.5" />
               New Calculation

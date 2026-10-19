@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { siteConfig } from '@/lib/config/site';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/lib/auth/auth-context';
-import { UserNav } from '@/components/portal/user-nav';
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { siteConfig } from "@/lib/config/site";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/lib/auth/auth-context";
+import { UserNav } from "@/components/portal/user-nav";
 import {
   Menu,
   X,
@@ -17,8 +17,8 @@ import {
   User,
   LayoutDashboard,
   LogOut,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -47,30 +47,16 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-[#0284C7]',
-                    isActive ? 'text-[#0284C7] font-semibold' : 'text-[#6B6B6B]'
+                    "text-sm font-medium transition-colors hover:text-[#0284C7]",
+                    isActive
+                      ? "text-[#0284C7] font-semibold"
+                      : "text-[#6B6B6B]",
                   )}
                 >
                   {item.label}
                 </Link>
               );
             })}
-
-            {/* Direct Admin Console Tab if signed-in user is an admin */}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className={cn(
-                  'flex items-center gap-1.5 text-sm font-bold transition-colors px-2.5 py-1 rounded-md',
-                  pathname.startsWith('/admin')
-                    ? 'bg-[#FEE2E2] text-[#DC2626]'
-                    : 'text-[#DC2626] hover:bg-[#FEF2F2]'
-                )}
-              >
-                <ShieldAlert className="h-4 w-4" />
-                <span>Admin Console</span>
-              </Link>
-            )}
           </nav>
         </div>
 
@@ -106,7 +92,11 @@ export function Header() {
             aria-expanded={isMobileMenuOpen}
             aria-label="Toggle navigation menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
@@ -123,8 +113,10 @@ export function Header() {
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    'text-sm font-medium py-1.5 transition-colors',
-                    isActive ? 'text-[#0284C7] font-semibold' : 'text-[#6B6B6B]'
+                    "text-sm font-medium py-1.5 transition-colors",
+                    isActive
+                      ? "text-[#0284C7] font-semibold"
+                      : "text-[#6B6B6B]",
                   )}
                 >
                   {item.label}
@@ -149,17 +141,24 @@ export function Header() {
                   <div className="flex items-center justify-between p-2 rounded-lg bg-[#FAFAFA] border border-[#E5E5E5]">
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0284C7] text-xs font-bold text-white">
-                        {(profile?.displayName || user.email || 'C').charAt(0).toUpperCase()}
+                        {(profile?.displayName || user.email || "C")
+                          .charAt(0)
+                          .toUpperCase()}
                       </div>
                       <div className="text-xs">
                         <p className="font-bold text-[#1A1A1A] truncate max-w-[150px]">
-                          {profile?.displayName || user.email?.split('@')[0]}
+                          {profile?.displayName || user.email?.split("@")[0]}
                         </p>
-                        <p className="text-[10px] text-[#6B6B6B] truncate max-w-[150px]">{user.email}</p>
+                        <p className="text-[10px] text-[#6B6B6B] truncate max-w-[150px]">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                     {isAdmin ? (
-                      <Badge variant="destructive" className="text-[10px] uppercase font-bold">
+                      <Badge
+                        variant="destructive"
+                        className="text-[10px] uppercase font-bold"
+                      >
                         Admin
                       </Badge>
                     ) : (
@@ -203,14 +202,28 @@ export function Header() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full justify-center">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-center"
+                    >
                       <LogIn className="h-4 w-4 mr-1.5" />
                       Sign in
                     </Button>
                   </Link>
-                  <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="primary" size="sm" className="w-full justify-center">
+                  <Link
+                    href="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="w-full justify-center"
+                    >
                       Get started
                     </Button>
                   </Link>

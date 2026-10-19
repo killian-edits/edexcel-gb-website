@@ -230,6 +230,19 @@ export async function getComponentsForSubject(
   return components;
 }
 
+export async function getAllComponents(): Promise<SubjectComponent[]> {
+  const supabase = createStaticSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("subject_components")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as ComponentRow[]).map(mapComponentRow);
+}
+
 export async function getAllBoundaries(): Promise<GradeBoundary[]> {
   const supabase = createStaticSupabaseClient();
   if (!supabase) return [];

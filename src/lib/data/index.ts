@@ -41,6 +41,11 @@ export async function searchSubjects(query: string): Promise<Subject[]> {
 
 // ─── Components ─────────────────────────────────────────────
 
+export async function getAllComponents(): Promise<SubjectComponent[]> {
+  const { getAllComponents: getSupabaseAllComponents } = await import('@/lib/supabase/supabase-queries');
+  return getSupabaseAllComponents();
+}
+
 export async function getComponentsForSubject(
   subjectId: string,
   tier?: string | null,
