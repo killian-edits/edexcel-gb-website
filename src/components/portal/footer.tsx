@@ -36,6 +36,11 @@ export async function Footer() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/past-papers" className="hover:text-[#0284C7]">
+                    Past Papers
+                  </Link>
+                </li>
+                <li>
                   <Link href="/dashboard" className="hover:text-[#0284C7]">
                     Dashboard
                   </Link>

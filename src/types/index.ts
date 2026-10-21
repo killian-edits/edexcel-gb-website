@@ -243,6 +243,27 @@ export interface SavedCalculation {
   updatedAt: string;
 }
 
+// ─── Past Papers ──────────────────────────────────────────
+
+export interface PastPaper {
+  id: string;
+  subjectCode: string;
+  subjectTitle: string;
+  qualification: string;
+  specificationCode: string;
+  year: number;
+  session: 'june' | 'january' | 'november';
+  paperNumber: string;
+  paperCode: string;
+  tier: Tier | 'untiered' | null;
+  questionPaperPath: string | null;
+  markSchemePath: string | null;
+  questionPaperUrl?: string | null;
+  markSchemeUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── User / Auth ────────────────────────────────────────────
 
 export interface UserProfile {
