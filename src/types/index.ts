@@ -256,6 +256,7 @@ export interface PastPaper {
   paperNumber: string;
   paperCode: string;
   tier: Tier | 'untiered' | null;
+  duration?: string | null;
   questionPaperPath: string | null;
   markSchemePath: string | null;
   questionPaperUrl?: string | null;

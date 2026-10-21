@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   ZoomIn,
   ZoomOut,
@@ -13,11 +13,11 @@ import {
   FileText,
   AlertCircle,
   Upload,
-} from 'lucide-react';
+} from "lucide-react";
 
 export interface PDFViewerProps {
   title: string;
-  type: 'question_paper' | 'mark_scheme';
+  type: "question_paper" | "mark_scheme";
   pdfUrl?: string | null;
   storagePath?: string | null;
   paperCode: string;
@@ -30,7 +30,7 @@ export function PDFViewer({
   pdfUrl,
   storagePath,
   paperCode,
-  className = '',
+  className = "",
 }: PDFViewerProps) {
   const [zoom, setZoom] = useState<number>(100);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -46,9 +46,15 @@ export function PDFViewer({
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      containerRef.current
+        .requestFullscreen()
+        .then(() => setIsFullscreen(true))
+        .catch(() => {});
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+      document
+        .exitFullscreen()
+        .then(() => setIsFullscreen(false))
+        .catch(() => {});
     }
   };
 
@@ -56,27 +62,30 @@ export function PDFViewer({
     const onFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
   const badgeColor =
-    type === 'question_paper'
-      ? 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]'
-      : 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]';
+    type === "question_paper"
+      ? "bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]"
+      : "bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]";
 
   return (
     <div
       ref={containerRef}
       className={`flex flex-col h-full bg-[#1E293B] rounded-xl overflow-hidden border border-[#334155] shadow-sm ${className} ${
-        isFullscreen ? 'p-2' : ''
+        isFullscreen ? "p-2" : ""
       }`}
     >
       {/* PDF Controls Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-[#0F172A] border-b border-[#334155] text-white">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${badgeColor}`}>
-            {type === 'question_paper' ? 'Question Paper' : 'Mark Scheme'}
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${badgeColor}`}
+          >
+            {type === "question_paper" ? "Question Paper" : "Mark Scheme"}
           </span>
           <span className="text-xs font-semibold text-slate-200 truncate">
             {title}
@@ -84,103 +93,88 @@ export function PDFViewer({
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex items-center gap-1">
-          <div className="flex items-center bg-[#1E293B] rounded-lg p-0.5 border border-[#334155]">
-            <Button
+        <div className="flex items-center gap-2">
+          {/* Zoom Control Group */}
+          <div className="flex items-center bg-[#1E293B] rounded-lg p-1 border border-[#334155]">
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={handleZoomOut}
-              className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
+              className="h-8 w-8 rounded flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
               title="Zoom Out"
             >
-              <ZoomOut className="h-3.5 w-3.5" />
-            </Button>
+              <ZoomOut className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
+            </button>
             <button
               type="button"
               onClick={handleResetZoom}
-              className="text-[11px] font-mono px-2 text-slate-300 hover:text-white"
-              title="Reset Zoom"
+              className="text-xs font-mono font-bold px-2.5 text-slate-200 hover:text-white transition-colors cursor-pointer"
+              title="Reset Zoom to 100%"
             >
               {zoom}%
             </button>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={handleZoomIn}
-              className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
+              className="h-8 w-8 rounded flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
               title="Zoom In"
             >
-              <ZoomIn className="h-3.5 w-3.5" />
-            </Button>
+              <ZoomIn className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
+            </button>
           </div>
 
-          <Button
+          {/* Reload Viewport */}
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
             onClick={() => {
               setHasError(false);
               setReloadKey((k) => k + 1);
             }}
-            className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700/80 border border-transparent hover:border-slate-600 transition-colors cursor-pointer"
             title="Reload Viewer"
           >
-            <RotateCw className="h-3.5 w-3.5" />
-          </Button>
+            <RotateCw className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
+          </button>
 
           {pdfUrl && (
             <>
+              {/* Download PDF */}
               <a
                 href={pdfUrl}
                 download
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Download PDF"
+                className="h-9 w-9 rounded-lg flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700/80 border border-transparent hover:border-slate-600 transition-colors cursor-pointer"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                </Button>
+                <Download className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
               </a>
 
+              {/* Open in New Tab */}
               <a
                 href={pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Open in New Tab"
+                className="h-9 w-9 rounded-lg flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700/80 border border-transparent hover:border-slate-600 transition-colors cursor-pointer"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
+                <ExternalLink className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
               </a>
             </>
           )}
 
-          <Button
+          {/* Fullscreen Toggle */}
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
             onClick={toggleFullscreen}
-            className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-slate-700"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-700/80 border border-transparent hover:border-slate-600 transition-colors cursor-pointer"
+            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isFullscreen ? (
-              <Minimize2 className="h-3.5 w-3.5" />
+              <Minimize2 className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
             ) : (
-              <Maximize2 className="h-3.5 w-3.5" />
+              <Maximize2 className="!h-4 !w-4 shrink-0 stroke-[2.2]" />
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -192,10 +186,14 @@ export function PDFViewer({
               <AlertCircle className="h-6 w-6" />
             </div>
             <h4 className="text-sm font-bold text-white">
-              {type === 'question_paper' ? 'Question Paper Document' : 'Mark Scheme Document'}
+              {type === "question_paper"
+                ? "Question Paper Document"
+                : "Mark Scheme Document"}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed">
-              This document file has not yet been uploaded to the Supabase Storage bucket (<code className="text-amber-300 font-mono">past_papers</code>).
+              This document file has not yet been uploaded to the Supabase
+              Storage bucket (
+              <code className="text-amber-300 font-mono">past_papers</code>).
             </p>
             {storagePath && (
               <div className="rounded bg-slate-950 p-2.5 border border-slate-800 text-left">
@@ -208,7 +206,8 @@ export function PDFViewer({
               </div>
             )}
             <p className="text-[11px] text-slate-400">
-              Upload the PDF to Supabase Storage at this path to render the document immediately.
+              Upload the PDF to Supabase Storage at this path to render the
+              document immediately.
             </p>
           </div>
         ) : (
@@ -217,8 +216,8 @@ export function PDFViewer({
             style={{
               width: `${zoom}%`,
               height: `${zoom}%`,
-              minWidth: '100%',
-              minHeight: '100%',
+              minWidth: "100%",
+              minHeight: "100%",
             }}
           >
             <object
@@ -235,7 +234,9 @@ export function PDFViewer({
                 onError={() => setHasError(true)}
               >
                 <div className="p-6 text-center text-slate-300">
-                  <p className="text-sm">Unable to render PDF preview directly in browser.</p>
+                  <p className="text-sm">
+                    Unable to render PDF preview directly in browser.
+                  </p>
                   <a
                     href={pdfUrl}
                     target="_blank"
@@ -253,4 +254,3 @@ export function PDFViewer({
     </div>
   );
 }
-

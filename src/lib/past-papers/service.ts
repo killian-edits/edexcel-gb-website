@@ -2,72 +2,6 @@ import { createStaticSupabaseClient } from '@/lib/supabase/server';
 import { getPublicEnv, isSupabaseConfigured } from '@/lib/config/env';
 import type { PastPaper } from '@/types';
 
-export interface PastPaperFilters {
-  subject?: string;
-  year?: number | string;
-  session?: string;
-  paperNumber?: string;
-  search?: string;
-}
-
-/**
- * Known syllabus paper structures for all configured Pearson Edexcel IGCSE subjects.
- * Used for deterministic fallback indexing when database records are being provisioned.
- */
-export const KNOWN_IGCSE_PAPERS: Array<{
-  subjectCode: string;
-  subjectTitle: string;
-  qualification: string;
-  specificationCode: string;
-  year: number;
-  session: 'june' | 'january' | 'november';
-  paperNumber: string;
-  paperCode: string;
-  tier: 'higher' | 'foundation' | 'untiered' | null;
-}> = [
-  // Mathematics A (4MA1) - 2024 June
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'june', paperNumber: '1H', paperCode: '4MA1/1H', tier: 'higher' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'june', paperNumber: '2H', paperCode: '4MA1/2H', tier: 'higher' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'june', paperNumber: '1F', paperCode: '4MA1/1F', tier: 'foundation' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'june', paperNumber: '2F', paperCode: '4MA1/2F', tier: 'foundation' },
-  // Mathematics A (4MA1) - 2024 January
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'january', paperNumber: '1H', paperCode: '4MA1/1H', tier: 'higher' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2024, session: 'january', paperNumber: '2H', paperCode: '4MA1/2H', tier: 'higher' },
-  // Mathematics A (4MA1) - 2023 June
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2023, session: 'june', paperNumber: '1H', paperCode: '4MA1/1H', tier: 'higher' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2023, session: 'june', paperNumber: '2H', paperCode: '4MA1/2H', tier: 'higher' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2023, session: 'june', paperNumber: '1F', paperCode: '4MA1/1F', tier: 'foundation' },
-  { subjectCode: '4MA1', subjectTitle: 'Mathematics A', qualification: 'International GCSE', specificationCode: '4MA1', year: 2023, session: 'june', paperNumber: '2F', paperCode: '4MA1/2F', tier: 'foundation' },
-
-  // Physics (4PH1) - 2024 June
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2024, session: 'june', paperNumber: '1P', paperCode: '4PH1/1P', tier: 'untiered' },
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2024, session: 'june', paperNumber: '2P', paperCode: '4PH1/2P', tier: 'untiered' },
-  // Physics (4PH1) - 2024 January
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2024, session: 'january', paperNumber: '1P', paperCode: '4PH1/1P', tier: 'untiered' },
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2024, session: 'january', paperNumber: '2P', paperCode: '4PH1/2P', tier: 'untiered' },
-  // Physics (4PH1) - 2023 June
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2023, session: 'june', paperNumber: '1P', paperCode: '4PH1/1P', tier: 'untiered' },
-  { subjectCode: '4PH1', subjectTitle: 'Physics', qualification: 'International GCSE', specificationCode: '4PH1', year: 2023, session: 'june', paperNumber: '2P', paperCode: '4PH1/2P', tier: 'untiered' },
-
-  // Chemistry (4CH1) - 2024 June
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2024, session: 'june', paperNumber: '1C', paperCode: '4CH1/1C', tier: 'untiered' },
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2024, session: 'june', paperNumber: '2C', paperCode: '4CH1/2C', tier: 'untiered' },
-  // Chemistry (4CH1) - 2024 January
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2024, session: 'january', paperNumber: '1C', paperCode: '4CH1/1C', tier: 'untiered' },
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2024, session: 'january', paperNumber: '2C', paperCode: '4CH1/2C', tier: 'untiered' },
-  // Chemistry (4CH1) - 2023 June
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2023, session: 'june', paperNumber: '1C', paperCode: '4CH1/1C', tier: 'untiered' },
-  { subjectCode: '4CH1', subjectTitle: 'Chemistry', qualification: 'International GCSE', specificationCode: '4CH1', year: 2023, session: 'june', paperNumber: '2C', paperCode: '4CH1/2C', tier: 'untiered' },
-
-  // English Language B (4EB1) - 2024 June
-  { subjectCode: '4EB1', subjectTitle: 'English Language B', qualification: 'International GCSE', specificationCode: '4EB1', year: 2024, session: 'june', paperNumber: '1', paperCode: '4EB1/01', tier: 'untiered' },
-  { subjectCode: '4EB1', subjectTitle: 'English Language B', qualification: 'International GCSE', specificationCode: '4EB1', year: 2024, session: 'june', paperNumber: '1R', paperCode: '4EB1/01R', tier: 'untiered' },
-  // English Language B (4EB1) - 2024 January
-  { subjectCode: '4EB1', subjectTitle: 'English Language B', qualification: 'International GCSE', specificationCode: '4EB1', year: 2024, session: 'january', paperNumber: '1', paperCode: '4EB1/01', tier: 'untiered' },
-  // English Language B (4EB1) - 2023 June
-  { subjectCode: '4EB1', subjectTitle: 'English Language B', qualification: 'International GCSE', specificationCode: '4EB1', year: 2023, session: 'june', paperNumber: '1', paperCode: '4EB1/01', tier: 'untiered' },
-];
-
 /**
  * Build a canonical public Supabase Storage URL for a given path inside 'past_papers'.
  */
@@ -78,9 +12,30 @@ export function getPastPaperStorageUrl(storagePath: string | null): string | nul
   }
   const { supabaseUrl } = getPublicEnv();
   if (!supabaseUrl) return null;
-  // Clean path
   const cleanPath = storagePath.replace(/^\/+/, '');
   return `${supabaseUrl}/storage/v1/object/public/past_papers/${cleanPath}`;
+}
+
+/**
+ * Helper to determine default duration for Pearson Edexcel papers
+ */
+export function getStandardPaperDuration(subjectCode: string, paperNumber: string): string {
+  const normSubject = subjectCode.toUpperCase();
+  const normPaper = paperNumber.toUpperCase();
+
+  // Mathematics A (4MA1): 2 hours each paper
+  if (normSubject === '4MA1') return '2h';
+
+  // Physics (4PH1) and Chemistry (4CH1): Paper 1 is 2h, Paper 2 is 1h 15m
+  if (normSubject === '4PH1' || normSubject === '4CH1') {
+    if (normPaper.includes('2')) return '1h 15m';
+    return '2h';
+  }
+
+  // English Language B (4EB1): 3 hours
+  if (normSubject === '4EB1') return '3h';
+
+  return '2h';
 }
 
 /**
@@ -99,80 +54,199 @@ export function getDeterministicPaperId(item: {
 }
 
 /**
- * Get all past papers, combining Supabase DB rows with standard registered specifications.
+ * Recursively list all file paths uploaded to the Supabase Storage 'past_papers' bucket.
  */
-export async function getAllPastPapers(): Promise<PastPaper[]> {
-  let dbPapers: PastPaper[] = [];
+export async function getUploadedStorageFiles(): Promise<Set<string>> {
+  const uploadedSet = new Set<string>();
+  if (!isSupabaseConfigured()) return uploadedSet;
 
-  if (isSupabaseConfigured()) {
-    try {
-      const client = createStaticSupabaseClient();
-      if (client) {
-        const { data, error } = await client
-          .from('past_papers')
-          .select('*')
-          .order('year', { ascending: false })
-          .order('session', { ascending: true });
+  try {
+    const client = createStaticSupabaseClient();
+    if (!client) return uploadedSet;
 
-        if (!error && data && data.length > 0) {
-          dbPapers = data.map((row: any) => ({
-            id: row.id,
-            subjectCode: row.subject_code,
-            subjectTitle: row.subject_title,
-            qualification: row.qualification || 'International GCSE',
-            specificationCode: row.specification_code || row.subject_code,
-            year: row.year,
-            session: row.session,
-            paperNumber: row.paper_number,
-            paperCode: row.paper_code,
-            tier: row.tier,
-            questionPaperPath: row.question_paper_path,
-            markSchemePath: row.mark_scheme_path,
-            questionPaperUrl: getPastPaperStorageUrl(row.question_paper_path),
-            markSchemeUrl: getPastPaperStorageUrl(row.mark_scheme_path),
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
-          }));
+    const supabaseClient = client;
+    async function traverse(prefix = '') {
+      const { data, error } = await supabaseClient.storage.from('past_papers').list(prefix);
+      if (error || !data) return;
+
+      for (const item of data) {
+        const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
+        // Check if item is a folder (folders have null id and no mimetype metadata in Supabase)
+        if (item.id === null && (!item.metadata || !item.metadata.mimetype)) {
+          await traverse(fullPath);
+        } else {
+          uploadedSet.add(fullPath.replace(/^\/+/, '').toLowerCase());
         }
       }
-    } catch {
-      // Fallback cleanly if table is not yet migrated in Supabase
+    }
+
+    await traverse();
+  } catch (err) {
+    console.error('Error querying Supabase storage files:', err);
+  }
+
+  return uploadedSet;
+}
+
+/**
+ * Get all available past papers that have documents uploaded to Supabase Storage.
+ * Only returns past papers that have uploaded question papers or registered available documents in the bucket.
+ */
+export async function getAllPastPapers(): Promise<PastPaper[]> {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+
+  const uploadedFiles = await getUploadedStorageFiles();
+  let papers: PastPaper[] = [];
+
+  try {
+    const client = createStaticSupabaseClient();
+    if (client) {
+      // 1. Fetch any explicit past_papers rows from the database
+      const { data, error } = await client
+        .from('past_papers')
+        .select('*')
+        .order('year', { ascending: false })
+        .order('session', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        for (const row of data) {
+          const qpPath = row.question_paper_path?.replace(/^\/+/, '');
+          const msPath = row.mark_scheme_path?.replace(/^\/+/, '');
+          const normQp = qpPath?.toLowerCase();
+          const normMs = msPath?.toLowerCase();
+
+          // Only keep if the document is actually uploaded in the storage bucket
+          const isQpUploaded = normQp ? uploadedFiles.has(normQp) : false;
+          const isMsUploaded = normMs ? uploadedFiles.has(normMs) : false;
+
+          if (isQpUploaded || isMsUploaded) {
+            papers.push({
+              id: row.id,
+              subjectCode: row.subject_code,
+              subjectTitle: row.subject_title,
+              qualification: row.qualification || 'International GCSE',
+              specificationCode: row.specification_code || row.subject_code,
+              year: row.year,
+              session: row.session,
+              paperNumber: row.paper_number,
+              paperCode: row.paper_code,
+              tier: row.tier,
+              duration: row.duration || getStandardPaperDuration(row.subject_code, row.paper_number),
+              questionPaperPath: qpPath || null,
+              markSchemePath: msPath || null,
+              questionPaperUrl: isQpUploaded ? getPastPaperStorageUrl(qpPath) : null,
+              markSchemeUrl: isMsUploaded ? getPastPaperStorageUrl(msPath) : null,
+              createdAt: row.created_at,
+              updatedAt: row.updated_at,
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading past_papers DB table:', err);
+  }
+
+  // 2. Discover any additional uploaded files directly from storage paths if not yet inserted into DB
+  // Supported folder pattern: <subjectCode>/<year>-<session>/<paperCode>_<type>.pdf
+  // Example: 4MA1/2024-june/4MA1_1H_qp.pdf
+  const knownSubjectMap: Record<string, string> = {
+    '4MA1': 'Mathematics A',
+    '4PH1': 'Physics',
+    '4CH1': 'Chemistry',
+    '4EB1': 'English Language B',
+  };
+
+  const processedGroupKeys = new Set<string>(
+    papers.map((p) => `${p.subjectCode.toUpperCase()}-${p.year}-${p.session.toLowerCase()}-${p.paperCode.toUpperCase()}`)
+  );
+
+  // Group uploaded storage files by subject/year/session/paperCode
+  const storageGroups = new Map<string, { qp?: string; ms?: string; subject: string; year: number; session: 'june' | 'january' | 'november'; paperCode: string; paperNumber: string }>();
+
+  for (const filePath of uploadedFiles) {
+    const parts = filePath.split('/');
+    if (parts.length >= 3) {
+      const subject = parts[0].toUpperCase();
+      const sessionPart = parts[1].toLowerCase(); // e.g. "2024-june"
+      const fileName = parts[2]; // e.g. "4ma1_1h_qp.pdf"
+
+      const [yearStr, sessionStr] = sessionPart.split('-');
+      const year = parseInt(yearStr, 10);
+      const session = (sessionStr === 'january' || sessionStr === 'november' ? sessionStr : 'june') as 'june' | 'january' | 'november';
+
+      if (!isNaN(year) && fileName.endsWith('.pdf')) {
+        const isQp = fileName.includes('_qp') || fileName.includes('qp');
+        const isMs = fileName.includes('_ms') || fileName.includes('ms');
+
+        let rawCode = fileName.replace(/_(qp|ms)\.pdf$/i, '').toUpperCase();
+        let formattedCode = rawCode;
+        if (rawCode.startsWith(subject + '_')) {
+          formattedCode = subject + '/' + rawCode.substring(subject.length + 1);
+        } else if (!rawCode.includes('/')) {
+          formattedCode = `${subject}/${rawCode}`;
+        }
+
+        const paperNumber = formattedCode.split('/')[1] || '1';
+        const groupKey = `${subject}-${year}-${session}-${formattedCode.toUpperCase()}`;
+
+        if (!storageGroups.has(groupKey)) {
+          storageGroups.set(groupKey, {
+            subject,
+            year,
+            session,
+            paperCode: formattedCode,
+            paperNumber,
+          });
+        }
+
+        const group = storageGroups.get(groupKey)!;
+        if (isQp) group.qp = filePath;
+        if (isMs) group.ms = filePath;
+      }
     }
   }
 
-  // If DB rows exist, return them
-  if (dbPapers.length > 0) {
-    return dbPapers;
+  for (const [groupKey, group] of storageGroups.entries()) {
+    if (!processedGroupKeys.has(groupKey)) {
+      const subjectTitle = knownSubjectMap[group.subject] || group.subject;
+      const deterministicId = getDeterministicPaperId({
+        subjectCode: group.subject,
+        year: group.year,
+        session: group.session,
+        paperNumber: group.paperNumber,
+      });
+
+      papers.push({
+        id: deterministicId,
+        subjectCode: group.subject,
+        subjectTitle,
+        qualification: 'International GCSE',
+        specificationCode: group.subject,
+        year: group.year,
+        session: group.session,
+        paperNumber: group.paperNumber,
+        paperCode: group.paperCode,
+        tier: group.paperNumber.toLowerCase().includes('h')
+          ? 'higher'
+          : group.paperNumber.toLowerCase().includes('f')
+          ? 'foundation'
+          : 'untiered',
+        duration: getStandardPaperDuration(group.subject, group.paperNumber),
+        questionPaperPath: group.qp || null,
+        markSchemePath: group.ms || null,
+        questionPaperUrl: group.qp ? getPastPaperStorageUrl(group.qp) : null,
+        markSchemeUrl: group.ms ? getPastPaperStorageUrl(group.ms) : null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      processedGroupKeys.add(groupKey);
+    }
   }
 
-  // Standard registered specification papers (ensures instant availability for all supported subjects)
-  return KNOWN_IGCSE_PAPERS.map((kp) => {
-    const id = getDeterministicPaperId(kp);
-    // Standard structured storage paths in the 'past_papers' bucket:
-    // e.g. "4MA1/2024-june/4MA1_1H_qp.pdf" and "4MA1/2024-june/4MA1_1H_ms.pdf"
-    const safeCode = kp.paperCode.replace('/', '_').replace(/\s+/g, '');
-    const qpPath = `${kp.subjectCode}/${kp.year}-${kp.session}/${safeCode}_qp.pdf`;
-    const msPath = `${kp.subjectCode}/${kp.year}-${kp.session}/${safeCode}_ms.pdf`;
-
-    return {
-      id,
-      subjectCode: kp.subjectCode,
-      subjectTitle: kp.subjectTitle,
-      qualification: kp.qualification,
-      specificationCode: kp.specificationCode,
-      year: kp.year,
-      session: kp.session,
-      paperNumber: kp.paperNumber,
-      paperCode: kp.paperCode,
-      tier: kp.tier,
-      questionPaperPath: qpPath,
-      markSchemePath: msPath,
-      questionPaperUrl: getPastPaperStorageUrl(qpPath),
-      markSchemeUrl: getPastPaperStorageUrl(msPath),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  });
+  return papers;
 }
 
 /**
@@ -184,50 +258,3 @@ export async function getPastPaperById(id: string): Promise<PastPaper | null> {
   const found = all.find((p) => p.id.toLowerCase() === normalized);
   return found || null;
 }
-
-/**
- * Filter past papers by search query, subject, year, session, and paper number.
- */
-export function filterPastPapers(papers: PastPaper[], filters: PastPaperFilters): PastPaper[] {
-  return papers.filter((paper) => {
-    if (filters.subject && filters.subject !== 'all') {
-      if (paper.subjectCode.toUpperCase() !== filters.subject.toUpperCase()) {
-        return false;
-      }
-    }
-
-    if (filters.year && filters.year !== 'all') {
-      if (String(paper.year) !== String(filters.year)) {
-        return false;
-      }
-    }
-
-    if (filters.session && filters.session !== 'all') {
-      if (paper.session.toLowerCase() !== filters.session.toLowerCase()) {
-        return false;
-      }
-    }
-
-    if (filters.paperNumber && filters.paperNumber !== 'all') {
-      if (paper.paperNumber.toLowerCase() !== filters.paperNumber.toLowerCase()) {
-        return false;
-      }
-    }
-
-    if (filters.search && filters.search.trim().length > 0) {
-      const q = filters.search.toLowerCase().trim();
-      const matchesSearch =
-        paper.subjectTitle.toLowerCase().includes(q) ||
-        paper.subjectCode.toLowerCase().includes(q) ||
-        paper.paperCode.toLowerCase().includes(q) ||
-        paper.paperNumber.toLowerCase().includes(q) ||
-        String(paper.year).includes(q) ||
-        paper.session.toLowerCase().includes(q);
-
-      if (!matchesSearch) return false;
-    }
-
-    return true;
-  });
-}
-
