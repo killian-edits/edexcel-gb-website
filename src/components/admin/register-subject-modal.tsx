@@ -313,12 +313,22 @@ export function RegisterSubjectModal() {
 
                       <div className="w-full sm:w-20">
                         <Input
-                          type="number"
-                          placeholder="Weight %"
-                          value={comp.weightingPercent}
-                          onChange={(e) => handleComponentChange(idx, 'weightingPercent', Number(e.target.value))}
-                          className="h-8 text-xs font-mono"
+                          placeholder="Duration (e.g. 2h)"
+                          value={comp.duration}
+                          onChange={(e) => handleComponentChange(idx, 'duration', e.target.value)}
+                          className="h-8 text-xs"
                         />
+                      </div>
+
+                      <div className="w-full sm:w-20 flex items-center justify-center">
+                        <span className="text-xs text-[#6B6B6B]">
+                          {(() => {
+                            const total = components.reduce((s, c) => s + Number(c.maxRawMarks), 0);
+                            return total > 0
+                              ? `${((Number(comp.maxRawMarks) / total) * 100).toFixed(2)}%`
+                              : '0%';
+                          })()}
+                        </span>
                       </div>
 
                       {components.length > 1 && (

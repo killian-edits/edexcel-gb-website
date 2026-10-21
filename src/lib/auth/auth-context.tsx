@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: data.id,
           displayName: data.display_name,
           role: data.role || 'customer',
+          chosenSubjects: Array.isArray(data.chosen_subjects) ? data.chosen_subjects : [],
           createdAt: data.created_at,
           updatedAt: data.updated_at,
         } as UserProfile;

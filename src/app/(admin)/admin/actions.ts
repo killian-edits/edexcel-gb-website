@@ -84,16 +84,28 @@ export async function registerSubjectAction(input: RegisterSubjectInput) {
         ? input.tiers.map((t) => t.toLowerCase())
         : null;
 
+    // Check for existing subject with same code and version
+    const { data: existing, error: existErr } = await adminClient
+      .from('subjects')
+      .select('id')
+      .eq('code', normalizedCode)
+      .eq('version', input.version.trim() || '2017')
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: 'Subject with this code and version already exists.' };
+    }
+
     // Insert subject
     const { data: subject, error: subjectError } = await adminClient
-      .from("subjects")
+      .from('subjects')
       .insert({
         code: normalizedCode,
         title: normalizedTitle,
-        qualification: input.qualification.trim() || "International GCSE",
-        version: input.version.trim() || "2017",
+        qualification: input.qualification.trim() || 'International GCSE',
+        version: input.version.trim() || '2017',
         tiers: normalizedTiers,
-        status: input.status || "verified",
+        status: input.status || 'verified',
         source_url: input.sourceUrl?.trim() || null,
       })
       .select()
@@ -202,6 +214,68 @@ export async function addBoundaryDatasetAction(input: AddBoundaryInput) {
     return {
       success: false,
       error: err.message || "Failed to add grade boundary dataset",
+    };
+  }
+}
+
+/**
+ * Candidate Action: Save chosen subject codes to profile
+ * Restricts saving only to verified subjects found in Supabase.
+ */
+export async function saveCandidateSubjectsAction(subjectCodes: string[]) {
+  try {
+    const userClient = await createServerSupabaseClient();
+    if (!userClient) {
+      throw new Error("Supabase client unavailable");
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error("Authentication required to save subjects");
+    }
+
+    // Verify all subjectCodes are in the supported subjects in Supabase
+    const { data: verifiedSubjects, error: subjectsError } = await userClient
+      .from("subjects")
+      .select("code")
+      .eq("status", "verified");
+
+    if (subjectsError) {
+      throw new Error("Failed to verify subjects against database");
+    }
+
+    const verifiedCodesSet = new Set((verifiedSubjects || []).map((s) => s.code.toUpperCase()));
+    const validCodesToSave = subjectCodes
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => verifiedCodesSet.has(c));
+
+    // Deduplicate
+    const finalCodes = Array.from(new Set(validCodesToSave));
+
+    const { error: updateError } = await userClient
+      .from("profiles")
+      .update({
+        chosen_subjects: finalCodes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      throw new Error(updateError.message || "Failed to update profile subjects");
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/profile");
+
+    return { success: true, chosenSubjects: finalCodes };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || "Failed to save chosen subjects",
     };
   }
 }

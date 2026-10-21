@@ -249,6 +249,7 @@ export interface UserProfile {
   id: string;
   displayName: string | null;
   role: UserRole;
+  chosenSubjects?: string[];
   createdAt: string;
   updatedAt: string;
 }
