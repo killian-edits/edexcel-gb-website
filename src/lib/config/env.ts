@@ -7,23 +7,26 @@
  */
 
 /** Public variables (safe for client bundles) */
+
+import { SITE_URL } from "@/lib/utils/siteUrl";
+
 export function getPublicEnv() {
   return {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+    siteUrl: process.env.SITE_URL ?? "http://localhost:3000",
   };
 }
 
 /** Server-only variables (never import on client) */
 export function getServerEnv() {
-  if (typeof window !== 'undefined') {
-    throw new Error('getServerEnv must only be called on the server');
+  if (typeof window !== "undefined") {
+    throw new Error("getServerEnv must only be called on the server");
   }
 
   return {
     ...getPublicEnv(),
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   };
 }
 
@@ -47,14 +50,19 @@ export function validateEnv(): { valid: boolean; errors: string[] } {
 
   if ((url && !anonKey) || (!url && anonKey)) {
     errors.push(
-      'Supabase is partially configured. Set both NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, or neither.',
+      "Supabase is partially configured. Set both NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, or neither.",
     );
   }
 
-  if (url && !url.startsWith('https://') && !url.startsWith('http://localhost')) {
-    errors.push('NEXT_PUBLIC_SUPABASE_URL should be an https URL (or http://localhost for development).');
+  if (
+    url &&
+    !url.startsWith("https://") &&
+    !url.startsWith("http://localhost")
+  ) {
+    errors.push(
+      "NEXT_PUBLIC_SUPABASE_URL should be an https URL (or http://localhost for development).",
+    );
   }
 
   return { valid: errors.length === 0, errors };
 }
-

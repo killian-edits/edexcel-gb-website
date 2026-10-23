@@ -8,11 +8,14 @@
  * Keep the independent-service disclaimer separate and intact —
  * it is not derived from this config.
  */
+
+import { SITE_URL } from "@/lib/utils/siteUrl";
+
 export const siteConfig = {
   name: "Edexify",
   description:
     "Explore Edexcel International GCSE historical grade boundaries, calculate practice outcomes using verified data, and understand trends.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: process.env.SITE_URL ?? "http://localhost:3000",
 
   /** Independent-service disclaimer (not editable via site name) */
   disclaimer:
